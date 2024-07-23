@@ -13,11 +13,6 @@
         name: docker.io
         state: present
 
-    - name: Install Docker Compose
-      apt:
-        name: docker-compose
-        state: present
-
     - name: Start Docker service
       service:
         name: docker
@@ -30,7 +25,7 @@
         dest: /home/ubuntu/docker-compose.yml
 
     - name: Launch Docker Compose
-      command: docker-compose up -d
+      command: docker compose up -d
       args:
         chdir: /home/ubuntu/
 
