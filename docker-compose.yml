@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  wordpress:
+    image: wordpress:latest
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - mynetwork
+    entrypoint: >
+      sh -c " apt-get update && apt-get install -y wget && wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && chmod +x wp-cli.phar && mv wp-cli.phar /usr/local/bin/wp && wp user update admin --user_pass=lebigrootpassword --allow-root && docker-entrypoint.sh apache2-foreground"
+  db: 
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: legigarootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - mynetwork
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: legigarootpassword
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+
+volumes: 
+  wordpress_data:
+  db_data:
+
+networks:
+  mynetwork:
