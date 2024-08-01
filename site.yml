@@ -1,6 +1,6 @@
 - name: Deploy WordPress site
-  hosts: local
   become: yes
+  hosts: all
 
   tasks:
     - name: Update and upgrade apt packages
@@ -8,10 +8,10 @@
         update_cache: yes
         upgrade: dist
 
-    - name: Install Docker
-      apt:
-        name: docker.io
-        state: present
+    - name: Install Docker (compose included)
+      ansible.builtin.shell: docker ps || curl -fsSL https://get.docker.com | sh
+      args:
+        chdir: /tmp/
 
     - name: Start Docker service
       service:
@@ -19,14 +19,28 @@
         state: started
         enabled: yes
 
-    - name: Copy docker-compose file
+    - name: Destroy old deploy
+      shell: docker compose down --rmi all -v
+      args:
+        chdir: /tmp/docker
+      ignore_errors: true
+
+    - name: Copy docker files
       copy:
-        src: ./docker-compose.yml
-        dest: /home/ubuntu/docker-compose.yml
+        src: ./docker
+        dest: /tmp
+
+    - name: Generate .env file
+      command: sh /tmp/docker/generate_env_and_domain.sh
+      args:
+        chdir: /tmp/docker
+      environment:
+        DOMAIN_NAME: "{{ ansible_host }}"
+      register: env_gen
+
+    - debug: var=env_gen.stdout_lines
 
     - name: Launch Docker Compose
       command: docker compose up -d
       args:
-        chdir: /home/ubuntu/
-
-    
+        chdir: /tmp/docker

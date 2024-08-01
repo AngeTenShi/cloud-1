@@ -1,0 +1,72 @@
+services:
+  nginx:
+    image: jonasal/nginx-certbot:latest
+    depends_on:
+      - wordpress
+      - phpmyadmin
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CERTBOT_EMAIL: admin@${DOMAIN}
+      STAGING: 1
+    volumes:
+      - certs:/etc/letsencrypt
+      - ./nginx/conf:/etc/nginx/user_conf.d
+      - wordpress_data:/usr/src/wordpress
+    networks:
+      - mynetwork
+
+  wordpress:
+    build: ./wordpress
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - WORDPRESS_DB_HOST=db:3306
+      - WORDPRESS_DB_USER=${MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${MYSQL_PASSWORD}
+      - WORDPRESS_DB_NAME=${MYSQL_DATABASE}
+
+      - WORDPRESS_TITLE
+      - WORDPRESS_USER
+      - WORDPRESS_PASSWORD
+
+      - DOMAIN
+    volumes:
+      - wordpress_data:/usr/src/wordpress
+    networks:
+      - mynetwork
+
+  db: 
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - mynetwork
+  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_ABSOLUTE_URI: https://${DOMAIN}/phpmyadmin/
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+
+volumes: 
+  wordpress_data:
+  db_data:
+  certs:
+
+networks:
+  mynetwork:
