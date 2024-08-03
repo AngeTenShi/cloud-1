@@ -1,12 +1,8 @@
 # With Ansible
-you should configure servers in inventory file
-ansible-playbook -i inventory site.yml
 
-# in local you can test by deploying directy the docker 
+You should configure servers in inventory files, once done, deploy this way:
+```bash
+ansible-playbook -i inventory/<inventory>.ini site.yml
+```
 
-docker compose up -d 
-
-localhost:80 wordpress
-localhost:8080 ansible
-
-wordpress user admin password lebigrootpassword
+For local deployment, there is a local.ini file available
