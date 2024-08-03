@@ -15,4 +15,8 @@ WORDPRESS_PASSWORD=$(pass 16)
 DOMAIN=$DOMAIN_NAME
 EOF
 
+if [ "$DOMAIN_NAME" = "localhost" ] || [ "$DOMAIN_NAME" = "127.0.0.1" ]; then
+	echo "USE_LOCAL_CA=1" | tee -a .env
+fi
+
 sed -i "s/DOMAIN_TO_REPLACE/$DOMAIN_NAME/g" nginx/conf/default.conf

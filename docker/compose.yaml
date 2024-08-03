@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: jonasal/nginx-certbot:latest
+    image: jonasal/nginx-certbot:5.2.1
     depends_on:
       - wordpress
       - phpmyadmin
@@ -10,11 +10,12 @@ services:
       - "443:443"
     environment:
       CERTBOT_EMAIL: admin@${DOMAIN}
-      STAGING: 1
+      USE_LOCAL_CA: ${USE_LOCAL_CA:-0}
     volumes:
       - certs:/etc/letsencrypt
+      - wordpress_data:/var/www/html
       - ./nginx/conf:/etc/nginx/user_conf.d
-      - wordpress_data:/usr/src/wordpress
+      - ./nginx/conf/404.html:/404.html
     networks:
       - mynetwork
 
